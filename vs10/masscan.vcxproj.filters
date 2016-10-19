@@ -282,6 +282,12 @@
     <ClCompile Include="..\src\script-sslv3.c">
       <Filter>Source Files\scripts</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\dict.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\port-to-service.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\proto-arp.h">
@@ -481,6 +487,12 @@
     </ClInclude>
     <ClInclude Include="..\src\in-report.h">
       <Filter>Source Files\output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\dict.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\port-to-service.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

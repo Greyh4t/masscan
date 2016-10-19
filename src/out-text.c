@@ -3,6 +3,8 @@
 #include "masscan-app.h"
 #include "masscan-status.h"
 #include "unusedparm.h"
+#include "main-globals.h"
+#include "port-to-service.h"
 
 #include <ctype.h>
 
@@ -30,12 +32,13 @@ static void
 text_out_status(struct Output *out, FILE *fp, time_t timestamp,
     int status, unsigned ip, unsigned ip_proto, unsigned port, unsigned reason, unsigned ttl)
 {
+    const char *service = port_to_service(port, ip_proto);
+
     UNUSEDPARM(ttl);
     UNUSEDPARM(reason);
     UNUSEDPARM(out);
 
-
-    fprintf(fp, "%s %s %u %u.%u.%u.%u %u\n",
+    fprintf(fp, "%s %s %u %u.%u.%u.%u %u %s\n",
         status_string(status),
         name_from_ip_proto(ip_proto),
         port,
@@ -43,8 +46,10 @@ text_out_status(struct Output *out, FILE *fp, time_t timestamp,
         (ip>>16)&0xFF,
         (ip>> 8)&0xFF,
         (ip>> 0)&0xFF,
-        (unsigned)timestamp
+        (unsigned)timestamp,
+        service
         );
+    fflush(fp);
 }
 
 
@@ -58,6 +63,10 @@ text_out_banner(struct Output *out, FILE *fp, time_t timestamp,
 {
     char banner_buffer[4096];
 
+    const char *service = masscan_app_to_string(proto);
+    if (strcmp(service ,"unknown") == 0) {
+        service = port_to_service(port, ip_proto);
+    }
 
     UNUSEDPARM(out);
     UNUSEDPARM(ttl);
@@ -71,9 +80,10 @@ text_out_banner(struct Output *out, FILE *fp, time_t timestamp,
         (ip>> 8)&0xFF,
         (ip>> 0)&0xFF,
         (unsigned)timestamp,
-        masscan_app_to_string(proto),
+        service,
         normalize_string(px, length, banner_buffer, sizeof(banner_buffer))
         );
+    fflush(fp);
 }
 
 

@@ -54,6 +54,8 @@
 #include "proto-sctp.h"
 #include "script.h"
 #include "main-readrange.h"
+#include "dict.h"
+#include "port-to-service.h"
 
 #include <assert.h>
 #include <limits.h>
@@ -62,6 +64,8 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <stdint.h>
+
+#include <regex.h>
 
 #if defined(WIN32)
 #include <WinSock.h>
@@ -82,6 +86,10 @@ unsigned volatile is_rx_done = 0;
 time_t global_now;
 
 uint64_t usec_start;
+
+Dict tcp_port_service_db;
+Dict udp_port_service_db;
+Dict sctp_port_service_db;
 
 /***************************************************************************
  * We create a pair of transmit/receive threads for each network adapter.
@@ -998,6 +1006,9 @@ end:
     /* Thread is about to exit */
     parms->done_receiving = 1;
 
+    DictDestroy(tcp_port_service_db);
+    DictDestroy(udp_port_service_db);
+    DictDestroy(sctp_port_service_db);
 }
 
 
@@ -1506,6 +1517,8 @@ int main(int argc, char *argv[])
     snmp_init();
     x509_init();
 
+    /* prepare port_service_db */
+    port_service_db_init();
 
     /*
      * Apply excludes. People ask us not to scan them, so we maintain a list

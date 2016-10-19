@@ -1,9 +1,10 @@
 #include "output.h"
 #include "masscan-app.h"
 #include "masscan-status.h"
+#include "main-globals.h"
 #include "string_s.h"
+#include "port-to-service.h"
 #include <ctype.h>
-
 
 /****************************************************************************
  ****************************************************************************/
@@ -32,22 +33,27 @@ json_out_status(struct Output *out, FILE *fp, time_t timestamp, int status,
                unsigned ip, unsigned ip_proto, unsigned port, unsigned reason, unsigned ttl)
 {
     char reason_buffer[128];
+
+    const char *service = port_to_service(port, ip_proto);
+
     UNUSEDPARM(out);
     //UNUSEDPARM(timestamp);
 
     fprintf(fp, "{ ");
-    fprintf(fp, "  \"ip\": \"%u.%u.%u.%u\", ",
+    fprintf(fp, "\"ip\": \"%u.%u.%u.%u\", ",
             (ip>>24)&0xFF, (ip>>16)&0xFF, (ip>> 8)&0xFF, (ip>> 0)&0xFF);
-    fprintf(fp, "  \"timestamp\": \"%d\", \"ports\": [ {\"port\": %u, \"proto\": \"%s\", \"status\": \"%s\","
-                " \"reason\": \"%s\", \"ttl\": %u} ] ",
+    fprintf(fp, "\"timestamp\": \"%d\", \"ports\": [ {\"port\": %u, \"proto\": \"%s\", \"status\": \"%s\", "
+                "\"service\": {\"name\": \"%s\"}, \"reason\": \"%s\", \"ttl\": %u} ] ",
                 (int) timestamp,
                 port,
                 name_from_ip_proto(ip_proto),
                 status_string(status),
+                service,
                 reason_string(reason, reason_buffer, sizeof(reason_buffer)),
                 ttl
             );
     fprintf(fp, "},\n");
+    fflush(fp);
 
 
 }
@@ -98,20 +104,27 @@ json_out_banner(struct Output *out, FILE *fp, time_t timestamp,
 {
     char banner_buffer[65536];
 
+    const char *service = masscan_app_to_string(proto);
+    if (strcmp(service ,"unknown") == 0) {
+        service = port_to_service(port, ip_proto);
+    }
+
     UNUSEDPARM(ttl);
     //UNUSEDPARM(timestamp);
 
     fprintf(fp, "{ ");
-    fprintf(fp, "  \"ip\": \"%u.%u.%u.%u\", ",
+    fprintf(fp, "\"ip\": \"%u.%u.%u.%u\", ",
             (ip>>24)&0xFF, (ip>>16)&0xFF, (ip>> 8)&0xFF, (ip>> 0)&0xFF);
-    fprintf(fp, "  \"timestamp\": \"%d\", \"ports\": [ {\"port\": %u, \"proto\": \"%s\", \"service\": {\"name\": \"%s\", \"banner\": \"%s\"} } ] ",
+    fprintf(fp, "\"timestamp\": \"%d\", \"ports\": [ {\"port\": %u, \"proto\": \"%s\", \"service\": {\"name\": \"%s\", \"banner\": \"%s\"} } ] ",
             (int) timestamp,
             port,
             name_from_ip_proto(ip_proto),
-            masscan_app_to_string(proto),
+            //masscan_app_to_string(proto),
+            service,
             normalize_json_string(px, length, banner_buffer, sizeof(banner_buffer))
             );
     fprintf(fp, "},\n");
+    fflush(fp);
 
     UNUSEDPARM(out);
 
